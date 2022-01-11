@@ -17,3 +17,14 @@ progressbar2 = "^3"
 #[tool.poetry.extras]
 #qgis = ["qgis"]
 
+[tool.poetry.dev-dependencies]
+ipython = "*"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
