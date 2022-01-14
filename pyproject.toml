@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "gimpQGIS"
+name = "gimpqgis"
 version = "0.0.1"
 description = "SAR processing on the Cloud"
 authors = ["Ian Joughin <ian@apl.washington.edu>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/fastice/gimpQGIS"
-repository = "https://github.com/fastice/gimpQGIS"
+homepage = "https://github.com/fastice/gimpqgis"
+repository = "https://github.com/fastice/gimpqgis"
 keywords = ["SAR", "NSIDC", "Holoviz"]
 
 [tool.poetry.dependencies]
