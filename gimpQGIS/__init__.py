@@ -1,4 +1,4 @@
 __all__ = ['QgisGimpProjectSetup', 'QgisGimpProject']
 
-from gimpfunc.QgisGimpProjectSetup import QgisGimpProjectSetup
-from gimpfunc.QgisGimpProject import QgisGimpProject
+from gimpQGIS.QgisGimpProjectSetup import QgisGimpProjectSetup
+from gimpQGIS.QgisGimpProject import QgisGimpProject
