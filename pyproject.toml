@@ -8,7 +8,10 @@ readme = "README.md"
 homepage = "https://github.com/fastice/gimpqgis"
 repository = "https://github.com/fastice/gimpqgis"
 keywords = ["SAR", "NSIDC", "Holoviz"]
-
+packages = [
+    { include = "gimpqgis" },
+    { include = "gimpqgis/*/*.py" },
+]
 [tool.poetry.dependencies]
 python = "^3.8"
 progressbar2 = "^3"
