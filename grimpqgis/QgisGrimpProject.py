@@ -36,20 +36,20 @@ except Exception:
             '\033[1m\tprint(sys.path)\033[0m\n to find the path with:\n'
             '\t\033[1m\033[3m/../qgis/python\033[0m\033[0m\n'
             'Either modify the sys.path.append line with this path in'
-            'QgisGimpProject.py\nor update your python path')
+            'QgisGrimpProject.py\nor update your python path')
         sys.exit()
 
 
-class QgisGimpProject:
+class QgisGrimpProject:
     """ An object for the class is used to collect all of the data needed
     to build a QGIS project using the QGIS python API"""
 
-    def __init__(self, gimpSetup, crs=3413, relative=False, **kwargs):
+    def __init__(self, grimpSetup, crs=3413, relative=False, **kwargs):
         '''
         Init
         Parameters
         ----------
-        gimpSetup : QgisGimpProjectSetup
+        grimpSetup : QgisGrimpProjectSetup
             Setup object with all of the nfo.
         crs : int, optional
            epsg code. The default is 3413.
@@ -66,11 +66,12 @@ class QgisGimpProject:
         self.maxArea = 0
         self.nAdded = 0
         self.extent = None
-        self.gimpSetup = gimpSetup
+        self.grimpSetup = grimpSetup
         self.project = qc.QgsProject.instance()
         # Default to absolute paths
         self.project.writeEntry('Paths', 'Absolute', not relative)
         self.project.setCrs(qc.QgsCoordinateReferenceSystem(crs))
+       
         self.root = self.project.layerTreeRoot()
         self.canvas = qg.QgsMapCanvas()
         self._buildProductTree()
@@ -102,15 +103,15 @@ class QgisGimpProject:
                 myLayer = self.root.findLayer(child.layer().id())
                 # Set first no vector layer
                 if myLayer.layer().type() != qc.QgsMapLayerType.VectorLayer:
-                    print(myLayer.layer().type())
+                    # print(myLayer.layer().type())
                     myLayer.setItemVisibilityChecked(True)
                     return
 
     def _productCount(self):
         ''' Get total number of products included in project '''
         count = 0
-        for key in self.gimpSetup.productFamilies:
-            productFamily = self.gimpSetup.productFamilies[key]
+        for key in self.grimpSetup.productFamilies:
+            productFamily = self.grimpSetup.productFamilies[key]
             for band in productFamily['products']:
                 count += len(productFamily['products'][band])
         return count
@@ -123,13 +124,13 @@ class QgisGimpProject:
         self.nAdded = 0
         # loop through product Families (e.g., annualMosaics, quarterlyMosaics)
         with progressbar.ProgressBar(max_value=totalProducts) as myBar:
-            for productFamily in self.gimpSetup.productFamilies:
+            for productFamily in self.grimpSetup.productFamilies:
                 # Add the product type to the tree and return the group
                 productFamilyGroup = self._addproductFamilyToTree(
-                    self.gimpSetup.productFamilies[productFamily])
+                    self.grimpSetup.productFamilies[productFamily])
                 # get the list of product sets (e.g., {'vx': [files], 'vy'...)
                 productSets = \
-                    self.gimpSetup.productFamilies[productFamily]['products']
+                    self.grimpSetup.productFamilies[productFamily]['products']
                 for band in productSets:  # Add each list of product in to tree
                     self._addProductBand(band, productFamily,
                                          productSets[band], productFamilyGroup,
@@ -145,9 +146,9 @@ class QgisGimpProject:
         ''' Save layers by productFamily '''
         # Create list of layers to save (productFamilies or Categories)
         if saveCategories:
-            toSave = self.gimpSetup.productCategories()
+            toSave = self.grimpSetup.productCategories()
         else:
-            toSave = list(self.gimpSetup.productFamilies.keys())
+            toSave = list(self.grimpSetup.productFamilies.keys())
         # Go to layers deep in the and save items in toSave
         for level1 in self.root.children():
             # Process level1
@@ -166,9 +167,9 @@ class QgisGimpProject:
     def _getNumberOfBandsWithData(self, productFamily):
         ''' Compute the number of bands that actually have data associated'''
         nBands = 0
-        for band in self.gimpSetup.productFamilies[productFamily]['bands']:
+        for band in self.grimpSetup.productFamilies[productFamily]['bands']:
             products = \
-                self.gimpSetup.productFamilies[productFamily]['products'][band]
+                self.grimpSetup.productFamilies[productFamily]['products'][band]
             if len(products) > 0:
                 nBands += 1
         return nBands
@@ -192,7 +193,7 @@ class QgisGimpProject:
       '''
         # file name by product prefix
         baseName = \
-            self.gimpSetup.productFamilies[productFamily]["productPrefix"]
+            self.grimpSetup.productFamilies[productFamily]["productPrefix"]
         nBands = self._getNumberOfBandsWithData(productFamily)
         for product in products:
             date1, date2 = self._getDates(product)
@@ -211,7 +212,7 @@ class QgisGimpProject:
                                               productGroupName, productName,
                                               date1, date2, productFamily)
             displayOptions = \
-                self.gimpSetup.productFamilies[productFamily]['displayOptions']
+                self.grimpSetup.productFamilies[productFamily]['displayOptions']
             self._addLayerToGroup(bandGroup, product, productName, band,
                                   displayOptions)
             self.nAdded += 1
@@ -299,7 +300,7 @@ class QgisGimpProject:
             The group to add the layer to.
         '''
         # Products aren't filed under year, so return the band group
-        if not self.gimpSetup.productFamilies[productFamily]['byYear']:
+        if not self.grimpSetup.productFamilies[productFamily]['byYear']:
             return self._getBandGroup(productName, productFamilyGroup,
                                       productFamily)
         # Filed by date, so find and return that group

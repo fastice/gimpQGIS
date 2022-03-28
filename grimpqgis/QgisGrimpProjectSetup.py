@@ -37,7 +37,7 @@ displayDefaults = {'image': {'colorTable': None, 'minV': None, 'maxV': None,
                    }
 
 
-class QgisGimpProjectSetup:
+class QgisGrimpProjectSetup:
     """ An object for the class is used to collect all of the data needed
     to build a QGIS project"""
 
@@ -62,7 +62,7 @@ class QgisGimpProjectSetup:
         Parameters
         ----------
         basePath : str
-            Path to GIMP product directory.
+            Path to GrIMP product directory.
         """
         self.defaultBasePath = defaultBasePath
 
