@@ -349,14 +349,22 @@ class QgisGrimpProject:
         for a given prefix'''
         # setup table, add to as needed.
         dateLocs = {'GL_vel': (4, 5), 'GL_S1bks': (3, 4), 'TSX': (2, 3),
-                    'termini': None}
+                        'termini': None}
         # Get dates
         if 'termini' in product:
             date1 = datetime.strptime(product.split('/')[-2], '%Y.%m.%d')
             date2 = None
+        elif '/shp/' in product:  # Hack for internal gimp products
+            dirName = os.path.basename(product.split('/shp/')[0])
+            dates = dirName.split('Vel-')[1].split('.')
+            date1 = datetime.strptime(dates[0], '%Y-%m-%d')
+            date2 = datetime.strptime(dates[1], '%Y-%m-%d')
         else:
             # split path
-            pieces = product.split('/')[-1].split('_')
+            if '_' in product:
+                pieces = product.split('/')[-1].split('_')
+            else:
+                pieces = product.split('/')[-1].split('.')
             if 'TSX' in pieces:
                 prefix = 'TSX'
             else:
