@@ -129,10 +129,18 @@ class QgisGrimpProjectSetup:
 
     def fileFound(self, urlFile, productFamily):
         ''' See if a url belongs to a product Family '''
-        for x in ['productFilePrefix', 'fileType']:
-            if productFamily[x] not in urlFile:
-                return False
-        return True
+        if productFamily['fileType'] not in urlFile:
+            return False
+        #
+        prefixes = productFamily['productFilePrefix']
+        # modified 7/16/24 to allow multiple prefixes
+        if not isinstance(prefixes, list):
+            prefixes = [prefixes]
+        found = False
+        for prefix in prefixes:
+            if prefix in urlFile:
+                found = True
+        return found
 
     def filterUrls(self, urls, band, productFamily):
         ''' Given a list of urls, return all for requested band and
@@ -161,19 +169,25 @@ class QgisGrimpProjectSetup:
         productFamily : dict
             Product type parameter dictionary.
         """
-        for band in productFamily['bands']:
-            if urls is None:
-                myPath = '/'.join([productFamily['basePath'],
-                                   productFamily['topDir'],
-                                   productFamily['productFilePrefix'],
-                                   f'*{band}*.{productFamily["fileType"]}'])
-                # print(myPath)
-                productFamily['products'][band] += sorted(glob.glob(myPath))
-                # print(myPath,'\n',productFamily)
-            else:
-                foundUrls = self.filterUrls(urls, band, productFamily)
-                if len(foundUrls) > 0:
-                    productFamily['products'][band] = foundUrls
+        prefixes = productFamily['productFilePrefix']
+        if not isinstance(prefixes, list):
+            prefixes = [prefixes]
+        for prefix in prefixes:
+            for band in productFamily['bands']:
+                if urls is None:
+                    myPath = '/'.join([productFamily['basePath'],
+                                       productFamily['topDir'],
+                                       prefix,
+                                       f'*{band}*.{productFamily["fileType"]}']
+                                      )
+                    # print(myPath)
+                    productFamily['products'][band] += sorted(glob.glob(myPath)
+                                                              )
+                    # print(myPath,'\n',productFamily)
+                else:
+                    foundUrls = self.filterUrls(urls, band, productFamily)
+                    if len(foundUrls) > 0:
+                        productFamily['products'][band] = foundUrls
 
     def defaultDisplayOptions(self):
         ''' Return a copy of the default display options '''

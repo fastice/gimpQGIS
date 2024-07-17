@@ -8,7 +8,7 @@ Created on Wed Mar 17 14:22:13 2021
 import sys
 import os
 from datetime import datetime
-import progressbar
+# import progressbar
 
 try:
     import qgis.core as qc
@@ -71,7 +71,7 @@ class QgisGrimpProject:
         # Default to absolute paths
         self.project.writeEntry('Paths', 'Absolute', not relative)
         self.project.setCrs(qc.QgsCoordinateReferenceSystem(crs))
-       
+
         self.root = self.project.layerTreeRoot()
         self.canvas = qg.QgsMapCanvas()
         self._buildProductTree()
@@ -120,21 +120,22 @@ class QgisGrimpProject:
         """ Build a tree with root->topDir>products->optionalYear->name or
         Build a tree with root->topDir>products->optionalYear->name->bands
         """
-        totalProducts = self._productCount()
+        # totalProducts = self._productCount()
         self.nAdded = 0
         # loop through product Families (e.g., annualMosaics, quarterlyMosaics)
-        with progressbar.ProgressBar(max_value=totalProducts) as myBar:
-            for productFamily in self.grimpSetup.productFamilies:
-                # Add the product type to the tree and return the group
-                productFamilyGroup = self._addproductFamilyToTree(
-                    self.grimpSetup.productFamilies[productFamily])
-                # get the list of product sets (e.g., {'vx': [files], 'vy'...)
-                productSets = \
-                    self.grimpSetup.productFamilies[productFamily]['products']
-                for band in productSets:  # Add each list of product in to tree
-                    self._addProductBand(band, productFamily,
-                                         productSets[band], productFamilyGroup,
-                                         myBar)
+        # with progressbar.ProgressBar(maxval=totalProducts) as myBar:
+        for productFamily in self.grimpSetup.productFamilies:
+            # Add the product type to the tree and return the group
+            productFamilyGroup = self._addproductFamilyToTree(
+                self.grimpSetup.productFamilies[productFamily])
+            # get the list of product sets (e.g., {'vx': [files], 'vy'...)
+            productSets = \
+                self.grimpSetup.productFamilies[productFamily]['products']
+            for band in productSets:  # Add each list of product in to tree
+                # print(1)
+                self._addProductBand(band, productFamily,
+                                     productSets[band], productFamilyGroup,
+                                     None)
 
     def saveProject(self, rootName, append=False):
         if append is False:
@@ -169,7 +170,8 @@ class QgisGrimpProject:
         nBands = 0
         for band in self.grimpSetup.productFamilies[productFamily]['bands']:
             products = \
-                self.grimpSetup.productFamilies[productFamily]['products'][band]
+                self.grimpSetup.productFamilies[productFamily][
+                    'products'][band]
             if len(products) > 0:
                 nBands += 1
         return nBands
@@ -196,6 +198,7 @@ class QgisGrimpProject:
             self.grimpSetup.productFamilies[productFamily]["productPrefix"]
         nBands = self._getNumberOfBandsWithData(productFamily)
         for product in products:
+            # print(product)
             date1, date2 = self._getDates(product)
             dateStr = f'{date1.strftime("%Y-%m-%d")}'
             if date2 is not None:
@@ -212,11 +215,13 @@ class QgisGrimpProject:
                                               productGroupName, productName,
                                               date1, date2, productFamily)
             displayOptions = \
-                self.grimpSetup.productFamilies[productFamily]['displayOptions']
+                self.grimpSetup.productFamilies[productFamily][
+                    'displayOptions']
             self._addLayerToGroup(bandGroup, product, productName, band,
                                   displayOptions)
             self.nAdded += 1
-            myBar.update(self.nAdded)
+            if myBar is not None:
+                myBar.update(self.nAdded)
 
     def _updateMaxExtent(self, layer):
         ''' Track maximum extent to sent visible area to includ max area'''
@@ -239,6 +244,7 @@ class QgisGrimpProject:
 
     def _addVectorLayer(self, product, name):
         ''' Create raster layer and set display options'''
+        # print(name, product)
         layer = qc.QgsVectorLayer(product, name, 'ogr')  # Vector layer
         symbol = layer.renderer().symbol()
         # Very basic styling - could be updated
@@ -349,7 +355,7 @@ class QgisGrimpProject:
         for a given prefix'''
         # setup table, add to as needed.
         dateLocs = {'GL_vel': (4, 5), 'GL_S1bks': (3, 4), 'TSX': (2, 3),
-                        'termini': None}
+                    'termini': None}
         # Get dates
         if 'termini' in product:
             date1 = datetime.strptime(product.split('/')[-2], '%Y.%m.%d')
@@ -369,8 +375,15 @@ class QgisGrimpProject:
                 prefix = 'TSX'
             else:
                 prefix = '_'.join(pieces[0:2])
-            date1 = datetime.strptime(pieces[dateLocs[prefix][0]], '%d%b%y')
-            date2 = datetime.strptime(pieces[dateLocs[prefix][1]], '%d%b%y')
+            # This is hack for non Greenland cases, needs some more work
+            try:
+                date1 = datetime.strptime(pieces[dateLocs[prefix][0]],
+                                          '%d%b%y')
+                date2 = datetime.strptime(pieces[dateLocs[prefix][1]],
+                                          '%d%b%y')
+            except Exception:
+                date1 = datetime.strptime(pieces[4], '%d%b%y')
+                date2 = datetime.strptime(pieces[5], '%d%b%y')
         return date1, date2
 
     def _setLayerColorTable(self, layer, colorTable='Greys', minV=None,
